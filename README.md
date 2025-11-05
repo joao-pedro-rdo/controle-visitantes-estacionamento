@@ -6,6 +6,12 @@ Sistema de controle de acesso desenvolvido para modernizar a gestão de seguran�
 
 ## 🚀 Iniciando o Projeto
 
+Esse projeto usa o repositorio do github com submodulos, para clonar o projeto corretamente use o comando:
+
+```code
+git clone --recurse-submodules https://github.com/joao-pedro-rdo/controle-visitantes-estacionamento.git
+```
+
 Para gerar certificados SSL autoassinados para desenvolvimento local, execute o seguinte comando no terminal: - Assim vc vai, conseguir rodar o sistema em HTTPS localmente, sem isso o ngix nao vai iniciar corretamente, se quisaer usar HTTP, altere no .env a variavel FRONTEND_HTTPS para false e altere o arquivo nginx.conf.
 
 ```bash
