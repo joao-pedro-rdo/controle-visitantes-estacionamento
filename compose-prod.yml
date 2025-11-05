@@ -1,0 +1,86 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    container_name: db-roberti
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-roberti:/var/lib/postgresql/data
+      - ./prisma/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  back:
+    # build:
+    #   context: ./back
+    #   dockerfile: Dockerfile-back
+    image: joaoprdo/controle-gda-back:latest
+    restart: always
+    container_name: back-roberti
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - ENDPOINT=${ENDPOINT}
+      - HTTPS=${HTTPS}
+      - SURVEILLANCE_API_URL=${SURVEILLANCE_API_URL}
+      - SURVEILLANCE_API_CAMERA=${SURVEILLANCE_API_CAMERA}
+      - SURVEILLANCE_API_USERNAME=${SURVEILLANCE_API_USERNAME}
+      - SURVEILLANCE_API_PASSWORD=${SURVEILLANCE_API_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - IMAGE_ENCRYPTION_KEY=${IMAGE_ENCRYPTION_KEY}
+      - COOKIE_SECRET=${COOKIE_SECRET}
+
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - visitor-images:/app/uploads
+      - ./back/prisma/migrations:/app/prisma/migrations
+
+    command: ["sh", "-c", "npx prisma migrate deploy && yarn start"]
+
+  front:
+    # build:
+    #   context: ./front
+    #   dockerfile: Dockerfile-front
+    image: joaoprdo/controle-gda-front:latest
+    restart: always
+    container_name: front-roberti
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED}
+      - HTTPS=${FRONTEND_HTTPS}
+    expose:
+      - "3000"
+    depends_on:
+      - back
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    container_name: nginx-roberti
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - front
+      - back
+
+volumes:
+  db-roberti:
+  visitor-images:
