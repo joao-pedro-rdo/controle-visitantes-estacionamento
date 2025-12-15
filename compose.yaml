@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:15
     container_name: db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -37,6 +37,8 @@ services:
     depends_on:
       - db
     volumes:
+      - ./frontend/public:/app/public # Para desenvolvimento local com npm do front rodando diretamente no host
+      # - system-images:/app/public
       - visitor-images:/app/uploads
       - ./backend/prisma/migrations:/app/prisma/migrations
     # command: ["sh", "-c", "npx prisma migrate deploy && yarn start"]
