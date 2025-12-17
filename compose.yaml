@@ -75,6 +75,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -82,6 +83,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    depends_on:
+      - prometheus
     ports:
       - "3001:3000"
     volumes:
