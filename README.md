@@ -14,11 +14,28 @@ git clone --recurse-submodules https://github.com/joao-pedro-rdo/controle-visita
 
 Para gerar certificados SSL autoassinados para desenvolvimento local, execute o seguinte comando no terminal: - Assim vc vai, conseguir rodar o sistema em HTTPS localmente, sem isso o ngix nao vai iniciar corretamente, se quisaer usar HTTP, altere no .env a variavel FRONTEND_HTTPS para false e altere o arquivo nginx.conf.
 
+**Linux/macOS (Bash):**
 ```bash
 mkdir -p ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
  -keyout ssl/server.key \
  -out ssl/server.crt \
+ -subj "/C=BR/ST=State/L=City/O=Organization/CN=localhost"
+```
+
+**Windows (PowerShell):**
+
+> ⚠️ Pré-requisito: instale o [Chocolatey](https://dev.to/kevinkirsten/como-instalar-e-utilizar-o-chocolatey-guia-para-iniciantes-1i98) e depois o OpenSSL. Abra o PowerShell como **Administrador** e execute:
+> ```powershell
+> choco install openssl -y
+> ```
+> Feche e reabra o PowerShell (não precisa ser admin) para usar o `openssl`.
+
+```powershell
+New-Item -ItemType Directory -Force -Path ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 `
+ -keyout ssl/server.key `
+ -out ssl/server.crt `
  -subj "/C=BR/ST=State/L=City/O=Organization/CN=localhost"
 ```
 
