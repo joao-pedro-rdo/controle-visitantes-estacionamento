@@ -49,7 +49,7 @@ services:
       - visitor-images:/app/uploads
       - ./back/prisma/migrations:/app/prisma/migrations
 
-    command: ["sh", "-c", "npx prisma migrate deploy && yarn start"]
+    command: ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && yarn start"]
 
   front:
     # build:
