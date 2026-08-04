@@ -4,10 +4,10 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Status Geral
 
-- [ ] Fase 0 concluida
+- [x] Fase 0 concluida
 - [ ] Fase 1 concluida
-- [ ] Fase 2 concluida
-- [ ] Fase 3 concluida
+- [x] Fase 2 concluida
+- [x] Fase 3 concluida
 - [ ] Fase 4 concluida
 - [ ] Fase 5 concluida
 - [ ] Fase 6 concluida
@@ -18,93 +18,95 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 0: Padrao Tecnico
 
-- [ ] Confirmar stack: `Fastify + TypeScript + Zod + Vitest + Prisma`
-- [ ] Confirmar que `NestJS` esta fora do escopo por enquanto
-- [ ] Definir regra: toda feature nova nasce em TypeScript
-- [ ] Definir regra: toda rota nova tem schema `Zod`
-- [ ] Definir regra: controller sem regra de negocio
-- [ ] Definir regra: acesso Prisma fora do controller
-- [ ] Definir regra: erros padronizados
+- [x] Confirmar stack: `Fastify + TypeScript + Zod + Vitest + Prisma`
+- [x] Confirmar que `NestJS` esta fora do escopo por enquanto
+- [x] Definir package manager: `npm`
+- [x] Confirmar motivo do `npm`: `Dockerfile`, `package-lock.json` e scripts atuais ja usam `npm`
+- [x] Definir regra: toda feature nova nasce em TypeScript
+- [x] Definir regra: toda rota nova tem schema `Zod`
+- [x] Definir regra: controller sem regra de negocio
+- [x] Definir regra: acesso Prisma fora do controller
+- [x] Definir regra: erros padronizados
 - [ ] Definir estrutura alvo:
-  - [ ] `src/app.ts`
-  - [ ] `src/server.ts`
-  - [ ] `src/routes/`
-  - [ ] `src/controllers/`
-  - [ ] `src/services/`
-  - [ ] `src/repositories/`
-  - [ ] `src/schemas/`
-  - [ ] `src/lib/`
-  - [ ] `src/types/`
-  - [ ] `src/test/`
+  - [x] `src/app.ts`
+  - [x] `src/server.ts`
+  - [x] `src/routes/`
+  - [x] `src/controllers/`
+  - [x] `src/services/`
+  - [x] `src/repositories/`
+  - [x] `src/schemas/`
+  - [x] `src/lib/`
+  - [x] `src/types/`
+  - [x] `src/test/`
 
 ## Fase 1: Infraestrutura Do Backend
 
-- [ ] Instalar `typescript`
-- [ ] Instalar `tsx` ou decidir executor de dev para TS
-- [ ] Criar `backend/tsconfig.json`
-- [ ] Criar `src/app.ts`
-- [ ] Criar `src/server.ts`
-- [ ] Mover bootstrap do Fastify para `app.ts`
-- [ ] Deixar `server.ts` responsavel apenas por `listen`
-- [ ] Ajustar script `dev`
-- [ ] Ajustar script `build`
-- [ ] Ajustar script `start`
-- [ ] Criar script `test`
-- [ ] Criar script `test:watch`
-- [ ] Instalar `zod`
+- [x] Instalar `typescript`
+- [x] Instalar `tsx` ou decidir executor de dev para TS
+- [x] Criar `backend/tsconfig.json`
+- [x] Criar `src/app.ts`
+- [x] Criar `src/server.ts`
+- [x] Mover bootstrap do Fastify para `app.ts`
+- [x] Deixar `server.ts` responsavel apenas por `listen`
+- [x] Ajustar script `dev`
+- [x] Ajustar script `build`
+- [x] Ajustar script `start`
+- [x] Criar script `test`
+- [x] Criar script `test:watch`
+- [x] Instalar `zod`
 - [ ] Avaliar integracao com Fastify para schemas tipados
-- [ ] Instalar `vitest`
-- [ ] Criar config minima do `vitest`
-- [ ] Criar `src/test/setup.ts`
-- [ ] Criar helper para criar app de teste
-- [ ] Criar helper para autenticacao em teste
-- [ ] Validar que o backend sobe apos a transicao inicial
-- [ ] Validar que `fastify.inject()` funciona
+- [x] Instalar `vitest`
+- [x] Criar config minima do `vitest`
+- [x] Criar `src/test/setup.ts`
+- [x] Criar helper para criar app de teste
+- [x] Criar helper para autenticacao em teste
+- [x] Validar que o backend sobe apos a transicao inicial
+- [x] Validar que `fastify.inject()` funciona
 
 ## Fase 2: Fundacoes Do Backend
 
-- [ ] Criar `AppError`
-- [ ] Padronizar codigos HTTP
-- [ ] Padronizar mensagens de erro para frontend
-- [ ] Criar handler global de erro
-- [ ] Mapear `ZodError` para `400`
-- [ ] Mapear auth para `401` e `403`
-- [ ] Esconder stack em producao
-- [ ] Criar utilitario de validacao para `body`
-- [ ] Criar utilitario de validacao para `params`
-- [ ] Criar utilitario de validacao para `query`
-- [ ] Centralizar Prisma em um client unico
-- [ ] Reduzir imports diretos de Prisma espalhados
-- [ ] Centralizar parsing de token
-- [ ] Centralizar leitura de cookie
-- [ ] Centralizar verificacao de usuario e role
-- [ ] Padronizar respostas de sucesso
-- [ ] Padronizar respostas de erro
+- [x] Criar `AppError`
+- [x] Padronizar codigos HTTP
+- [x] Padronizar mensagens de erro para frontend
+- [x] Criar handler global de erro
+- [x] Mapear `ZodError` para `400`
+- [x] Mapear auth para `401` e `403`
+- [x] Esconder stack em producao
+- [x] Criar utilitario de validacao para `body`
+- [x] Criar utilitario de validacao para `params`
+- [x] Criar utilitario de validacao para `query`
+- [x] Centralizar Prisma em um client unico
+- [x] Reduzir imports diretos de Prisma espalhados
+- [x] Centralizar parsing de token
+- [x] Centralizar leitura de cookie
+- [x] Centralizar verificacao de usuario e role
+- [x] Padronizar respostas de sucesso
+- [x] Padronizar respostas de erro
 
 ## Fase 3: Auth
 
-- [ ] Criar schema Zod de login
-- [ ] Criar schema Zod de signup
-- [ ] Criar schema Zod de update user
-- [ ] Criar schema Zod de update password
-- [ ] Criar service de auth
-- [ ] Mover validacao de credenciais para service
-- [ ] Mover emissao de token para service
-- [ ] Mover logout para service
-- [ ] Mover check de sessao para service
-- [ ] Enxugar controller de auth
-- [ ] Revisar `httpOnly`
-- [ ] Revisar `sameSite`
-- [ ] Revisar `secure`
-- [ ] Validar compatibilidade com Nginx e proxy
-- [ ] Revisar `verifyToken`
-- [ ] Revisar `verifyS2Role`
-- [ ] Revisar `verifyGuardaRole`
-- [ ] Criar teste: login sucesso
-- [ ] Criar teste: login invalido
-- [ ] Criar teste: auth check autenticado
-- [ ] Criar teste: auth check sem cookie
-- [ ] Criar teste: logout
+- [x] Criar schema Zod de login
+- [x] Criar schema Zod de signup
+- [x] Criar schema Zod de update user
+- [x] Criar schema Zod de update password
+- [x] Criar service de auth
+- [x] Mover validacao de credenciais para service
+- [x] Mover emissao de token para service
+- [x] Mover logout para service
+- [x] Mover check de sessao para service
+- [x] Enxugar controller de auth
+- [x] Revisar `httpOnly`
+- [x] Revisar `sameSite`
+- [x] Revisar `secure`
+- [x] Validar compatibilidade com Nginx e proxy
+- [x] Revisar `verifyToken`
+- [x] Revisar `verifyS2Role`
+- [x] Revisar `verifyGuardaRole`
+- [x] Criar teste: login sucesso
+- [x] Criar teste: login invalido
+- [x] Criar teste: auth check autenticado
+- [x] Criar teste: auth check sem cookie
+- [x] Criar teste: logout
 
 ## Fase 4: Vehicles
 
@@ -229,7 +231,7 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Proxima Execucao Recomendada
 
-- [ ] Instalar `typescript`, `zod` e `vitest`
-- [ ] Separar `app` de `server`
-- [ ] Refatorar `auth` primeiro
-- [ ] Escrever testes de `login`, `checkAuth` e `logout`
+- [x] Instalar `typescript`, `zod` e `vitest`
+- [x] Separar `app` de `server`
+- [x] Refatorar `auth` primeiro
+- [x] Escrever testes de `login`, `checkAuth` e `logout`
