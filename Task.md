@@ -8,7 +8,7 @@ Baseado em `docs/backend-roadmap.md`.
 - [ ] Fase 1 concluida
 - [x] Fase 2 concluida
 - [x] Fase 3 concluida
-- [ ] Fase 4 concluida
+- [x] Fase 4 concluida
 - [ ] Fase 5 concluida
 - [ ] Fase 6 concluida
 - [ ] Fase 7 concluida
@@ -110,24 +110,24 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 4: Vehicles
 
-- [ ] Criar schema Zod de create vehicle
-- [ ] Criar schema Zod de update vehicle
-- [ ] Criar schema Zod de get by id
-- [ ] Criar schema Zod de get by plate
-- [ ] Validar placa
-- [ ] Validar CPF ou RG conforme regra definida
-- [ ] Validar campos obrigatorios
-- [ ] Validar tamanho maximo dos campos
-- [ ] Validar caracteres especiais indevidos
-- [ ] Criar service de vehicles
-- [ ] Criar repository de vehicles
-- [ ] Remover regra de negocio do controller
-- [ ] Criar teste: create success
-- [ ] Criar teste: create invalid body
-- [ ] Criar teste: get by id
-- [ ] Criar teste: update
-- [ ] Criar teste: conflict quando aplicavel
-- [ ] Criar teste: auth nas rotas protegidas
+- [x] Criar schema Zod de create vehicle
+- [x] Criar schema Zod de update vehicle
+- [x] Criar schema Zod de get by id
+- [x] Criar schema Zod de get by plate
+- [x] Validar placa
+- [x] Validar CPF ou RG conforme regra definida
+- [x] Validar campos obrigatorios
+- [x] Validar tamanho maximo dos campos
+- [x] Validar caracteres especiais indevidos
+- [x] Criar service de vehicles
+- [x] Criar repository de vehicles
+- [x] Remover regra de negocio do controller
+- [x] Criar teste: create success
+- [x] Criar teste: create invalid body
+- [x] Criar teste: get by id
+- [x] Criar teste: update
+- [x] Criar teste: conflict quando aplicavel
+- [x] Criar teste: auth nas rotas protegidas
 
 ## Fase 5: Entries E Exits
 
