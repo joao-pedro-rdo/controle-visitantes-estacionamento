@@ -9,7 +9,7 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Fase 2 concluida
 - [x] Fase 3 concluida
 - [x] Fase 4 concluida
-- [ ] Fase 5 concluida
+- [x] Fase 5 concluida
 - [ ] Fase 6 concluida
 - [ ] Fase 7 concluida
 - [ ] Fase 8 concluida
@@ -131,29 +131,29 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 5: Entries E Exits
 
-- [ ] Mapear fluxo de entrada de visitante
-- [ ] Mapear fluxo de entrada de permissionario
-- [ ] Mapear fluxo de agendamento
-- [ ] Mapear fluxo de confirmacao
-- [ ] Mapear fluxo de saida
-- [ ] Criar schema Zod de create entry
-- [ ] Criar schema Zod de create exit
-- [ ] Criar schema Zod de query by date
-- [ ] Criar schema Zod de create scheduled entry
-- [ ] Criar schema Zod de confirm scheduled entry
-- [ ] Preservar ordem das rotas especificas antes das genericas
-- [ ] Criar service de entries
-- [ ] Criar repository de entries
-- [ ] Validar regra: pessoa ja esta dentro
-- [ ] Validar regra: saida sem entrada
-- [ ] Validar regra: agendamento em data invalida
-- [ ] Validar regra: tipo inconsistente
-- [ ] Criar teste: entrada visitante
-- [ ] Criar teste: saida com permissao correta
-- [ ] Criar teste: consulta por data
-- [ ] Criar teste: confirmacao de agendamento
-- [ ] Criar teste: unauthorized
-- [ ] Criar teste: forbidden
+- [x] Mapear fluxo de entrada de visitante
+- [x] Mapear fluxo de entrada de permissionario
+- [x] Mapear fluxo de agendamento
+- [x] Mapear fluxo de confirmacao
+- [x] Mapear fluxo de saida
+- [x] Criar schema Zod de create entry
+- [x] Criar schema Zod de create exit
+- [x] Criar schema Zod de query by date
+- [x] Criar schema Zod de create scheduled entry
+- [x] Criar schema Zod de confirm scheduled entry
+- [x] Preservar ordem das rotas especificas antes das genericas
+- [x] Criar service de entries
+- [x] Criar repository de entries
+- [x] Validar regra: pessoa ja esta dentro
+- [x] Validar regra: saida sem entrada
+- [x] Validar regra: agendamento em data invalida
+- [x] Validar regra: tipo inconsistente
+- [x] Criar teste: entrada visitante
+- [x] Criar teste: saida com permissao correta
+- [x] Criar teste: consulta por data
+- [x] Criar teste: confirmacao de agendamento
+- [x] Criar teste: unauthorized
+- [x] Criar teste: forbidden
 
 ## Fase 6: Permissionarios E Pessoas Nao Autorizadas
 
