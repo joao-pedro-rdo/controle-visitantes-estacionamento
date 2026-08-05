@@ -235,3 +235,10 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Separar `app` de `server`
 - [x] Refatorar `auth` primeiro
 - [x] Escrever testes de `login`, `checkAuth` e `logout`
+
+## Notas E Decisoes Pendentes
+
+### Frontend / normalizacao de dados (aplicar na Fase 9 ou quando fizer sentido)
+
+- [ ] **CPF mascarado vs armazenado (vehicles):** o `VehicleForm` envia `idNumber` mascarado (`999.999.999-99`); o backend aceita (valida digitos) mas armazena o valor com mascara. Se surgir relatorio/busca por CPF, sera preciso normalizar. Relacionado ao item da Fase 9 `Resolver padronizacao CPF vs IDT`.
+- [ ] **`vehicles-csv-controller.js` bypassa o schema novo:** o import de CSV insere `idNumber: 'N/A'` e placa crua direto via Prisma, fora das regras de validacao de vehicles (CPF/placa normalizada). Harmonizar quando a Fase 7 (uploads/settings) ou uma futura UI de importacao CSV passar por ali.
