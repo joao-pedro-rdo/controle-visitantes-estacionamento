@@ -10,7 +10,7 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Fase 3 concluida
 - [x] Fase 4 concluida
 - [x] Fase 5 concluida
-- [ ] Fase 6 concluida
+- [x] Fase 6 concluida
 - [ ] Fase 7 concluida
 - [ ] Fase 8 concluida
 - [ ] Fase 9 concluida
@@ -157,13 +157,13 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 6: Permissionarios E Pessoas Nao Autorizadas
 
-- [ ] Criar schemas Zod
-- [ ] Criar services
-- [ ] Criar repositories
-- [ ] Validar CPF corretamente
-- [ ] Validar upload e imagem quando aplicavel
-- [ ] Criar testes principais de permissionarios
-- [ ] Criar testes principais de pessoas nao autorizadas
+- [x] Criar schemas Zod
+- [x] Criar services
+- [x] Criar repositories
+- [x] Validar CPF corretamente
+- [x] Validar upload e imagem quando aplicavel
+- [x] Criar testes principais de permissionarios
+- [x] Criar testes principais de pessoas nao autorizadas
 
 ## Fase 7: Uploads, Imagens E Settings
 
