@@ -11,7 +11,7 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Fase 4 concluida
 - [x] Fase 5 concluida
 - [x] Fase 6 concluida
-- [ ] Fase 7 concluida
+- [ ] Fase 7 concluida (codigo feito; faltam smoke tests manuais Docker/Nginx)
 - [ ] Fase 8 concluida
 - [ ] Fase 9 concluida
 - [ ] Fase 10 concluida
@@ -167,24 +167,24 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 7: Uploads, Imagens E Settings
 
-- [ ] Mapear comportamento de `/public`
-- [ ] Mapear comportamento de `/system-images`
-- [ ] Mapear comportamento de `/images/...`
-- [ ] Confirmar acoplamento com bind mount de `frontend/public`
-- [ ] Validar extensao de upload
-- [ ] Validar mime type de upload
-- [ ] Validar tamanho de upload
-- [ ] Padronizar nome de arquivo
-- [ ] Revisar upload de logo
-- [ ] Revisar upload de background
-- [ ] Revisar reset de imagens
-- [ ] Revisar leitura das imagens atuais
-- [ ] Validar fallback de logo padrao
-- [ ] Validar fallback de background padrao
-- [ ] Criar teste: settings
-- [ ] Criar teste: images
-- [ ] Criar teste: autorizacao S2
-- [ ] Criar teste: fallback sem imagem customizada
+- [x] Mapear comportamento de `/public`
+- [x] Mapear comportamento de `/system-images`
+- [x] Mapear comportamento de `/images/...`
+- [x] Confirmar acoplamento com bind mount de `frontend/public`
+- [x] Validar extensao de upload
+- [x] Validar mime type de upload
+- [x] Validar tamanho de upload
+- [x] Padronizar nome de arquivo
+- [x] Revisar upload de logo
+- [x] Revisar upload de background
+- [x] Revisar reset de imagens
+- [x] Revisar leitura das imagens atuais
+- [x] Validar fallback de logo padrao
+- [x] Validar fallback de background padrao
+- [x] Criar teste: settings
+- [x] Criar teste: images
+- [x] Criar teste: autorizacao S2
+- [x] Criar teste: fallback sem imagem customizada
 - [ ] Fazer smoke test manual com Docker
 - [ ] Fazer smoke test manual com Nginx
 - [ ] Validar leitura das imagens no frontend
@@ -237,6 +237,12 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Escrever testes de `login`, `checkAuth` e `logout`
 
 ## Notas E Decisoes Pendentes
+
+### Fase 7 - comportamento de imagens e settings (registrado)
+
+- **Mapa de servico das imagens:** `/public/*` serve `frontend/public` via bind mount em Docker (imagens padrao `logo.png`/`bg-cover.jpg` do frontend). `/system-images/*` serve `backend/public/img` (Imagem Customizada, uploads S2). `/images/{visitors,permissionarios,pessoas-nao-autorizadas}/*` servem uploads criptografados de `backend/uploads`, com acesso autenticado.
+- **Fallback explicito (Imagem Padrao):** `GET /settings/system` e `GET /system-images/current` retornam `null` quando nao ha customizacao; o frontend aplica `/img/logo.png` e `/img/bg-cover.jpg`. O default do backend de background foi alinhado para `/img/bg-cover.jpg` (antes `/img/background.jpg`), casando com o fallback usado no frontend.
+- **Smoke test manual (Docker/Nginx) e leitura no frontend:** pendentes - precisam de ambiente com o stack completo (login, upload de logo/background, leitura via Nginx).
 
 ### Frontend / normalizacao de dados (aplicar na Fase 9 ou quando fizer sentido)
 
