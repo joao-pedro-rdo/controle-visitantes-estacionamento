@@ -12,7 +12,13 @@ Esse projeto usa o repositorio do github com submodulos, para clonar o projeto c
 git clone --recurse-submodules https://github.com/joao-pedro-rdo/controle-visitantes-estacionamento.git
 ```
 
-Para gerar certificados SSL autoassinados para desenvolvimento local, execute o seguinte comando no terminal: - Assim vc vai, conseguir rodar o sistema em HTTPS localmente, sem isso o ngix nao vai iniciar corretamente, se quisaer usar HTTP, altere no .env a variavel FRONTEND_HTTPS para false e altere o arquivo nginx.conf.
+Copie `.env.example` para `.env` e ajuste os valores locais. O modo padrão de desenvolvimento não sobe o Nginx; assim é possível desenvolver e testar frontend/API sem TLS:
+
+```bash
+docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml up --build
+```
+
+Frontend: `http://localhost:3000`; API: `http://localhost:5000`. Para testar também o proxy HTTPS do Nginx, gere certificados locais e inclua o override:
 
 **Linux/macOS (Bash):**
 ```bash
@@ -22,6 +28,12 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
  -out ssl/server.crt \
  -subj "/C=BR/ST=State/L=City/O=Organization/CN=localhost"
 ```
+
+```bash
+docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml -f docker/compose.nginx.yaml up --build
+```
+
+Mais detalhes de branches, imagens, runners e configuração dos ambientes estão em [`docs/deploy.md`](docs/deploy.md).
 
 **Windows (PowerShell):**
 

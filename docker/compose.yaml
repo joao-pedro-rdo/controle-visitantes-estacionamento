@@ -1,24 +1,24 @@
 services:
   db:
     image: postgres:15
-    container_name: db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - db:/var/lib/postgresql/data
-      - ./prisma/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend
-    ports:
-      - "${PORT}:${PORT}"
+    image: ${BACKEND_IMAGE:-joaoprdo/controle-visitantes-backend}:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    expose:
+      - "5000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       - HOST=${HOST}
@@ -35,21 +35,21 @@ services:
       - IMAGE_ENCRYPTION_KEY=${IMAGE_ENCRYPTION_KEY}
       - COOKIE_SECRET=${COOKIE_SECRET}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
-      - ./frontend/public:/app/public # Para desenvolvimento local com npm do front rodando diretamente no host
-      # - system-images:/app/public
+      - ../frontend/public:/app/public
       - visitor-images:/app/uploads
-      - ./backend/prisma/migrations:/app/prisma/migrations
-    # command: ["sh", "-c", "npx prisma migrate deploy && yarn start"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=${REACT_APP_API_URL}
-    container_name: frontend
+    image: ${FRONTEND_IMAGE:-joaoprdo/controle-visitantes-frontend}:${IMAGE_TAG:-local}
+    restart: unless-stopped
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
       - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED}
@@ -59,20 +59,8 @@ services:
     depends_on:
       - backend
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - backend
-
   prometheus:
+    profiles: [observability]
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
@@ -83,8 +71,8 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
   grafana:
+    profiles: [observability]
     image: grafana/grafana:latest
-    container_name: grafana
     depends_on:
       - prometheus
     ports:
