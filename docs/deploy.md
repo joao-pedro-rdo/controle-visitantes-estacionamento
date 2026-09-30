@@ -55,6 +55,10 @@ Teste local com Nginx:
 docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml -f docker/compose.nginx.yaml up --build
 ```
 
+Se o npm local estiver atrás de um proxy que assina TLS com uma CA própria, exporte essa CA como PEM, mantenha o arquivo fora do Git (por exemplo `ssl/npm-ca.pem`), defina `NPM_CA_FILE=../ssl/npm-ca.pem` no `.env` e adicione `-f docker/compose.dev-ca.yaml` aos comandos locais. O certificado é passado como BuildKit secret apenas durante `npm ci`; a validação TLS permanece habilitada.
+
+Os builds React em CI usam `CI=false` durante `npm run build` para que warnings de ESLint legados sejam reportados sem derrubar a compilação. Eles continuam visíveis para limpeza posterior.
+
 Deploy usa `docker/compose.yaml` com `docker/compose.nginx.yaml`; a tag é definida pelo branch. O pipeline puxa as imagens e usa `docker compose up -d --wait`. A migração Prisma continua sendo executada pelo CMD da imagem do backend.
 
 ## Configuração manual necessária no GitHub

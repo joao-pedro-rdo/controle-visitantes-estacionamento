@@ -52,7 +52,6 @@ services:
     restart: unless-stopped
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
-      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED}
       - HTTPS=${FRONTEND_HTTPS}
     expose:
       - "3000"

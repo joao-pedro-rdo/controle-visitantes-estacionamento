@@ -35,6 +35,8 @@ docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml
 
 Mais detalhes de branches, imagens, runners e configuração dos ambientes estão em [`docs/deploy.md`](docs/deploy.md).
 
+Se a rede local inspecionar TLS e o build Docker retornar `SELF_SIGNED_CERT_IN_CHAIN`, configure `NPM_CA_FILE` em `.env` com o caminho de um certificado CA PEM confiável e adicione `-f docker/compose.dev-ca.yaml` ao comando de build. Não desative a validação TLS do npm.
+
 **Windows (PowerShell):**
 
 > ⚠️ Pré-requisito: instale o [Chocolatey](https://dev.to/kevinkirsten/como-instalar-e-utilizar-o-chocolatey-guia-para-iniciantes-1i98) e depois o OpenSSL. Abra o PowerShell como **Administrador** e execute:
