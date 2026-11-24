@@ -13,7 +13,7 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Fase 6 concluida
 - [ ] Fase 7 concluida (codigo feito; faltam smoke tests manuais Docker/Nginx)
 - [ ] Fase 8 concluida
-- [ ] Fase 9 concluida
+- [x] Fase 9 concluida
 - [ ] Fase 10 concluida
 
 ## Fase 0: Padrao Tecnico
@@ -203,16 +203,19 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 9: Hardening De Validacao
 
-- [ ] Validar CPF apenas numerico
-- [ ] Validar tamanho correto do CPF
-- [ ] Bloquear caracteres especiais indevidos
-- [ ] Padronizar nomes de campos entre frontend e backend
-- [ ] Resolver padronizacao `CPF` vs `IDT`
-- [ ] Criar mascaras de frontend onde fizer sentido
-- [ ] Garantir que a validacao real continue no backend
-- [ ] Revisar padrao de CNH ou habilitacao
-- [ ] Revisar campo cor com dropdown controlado
-- [ ] Revisar secoes e destinos com dropdown controlado
+- [x] Validar CPF apenas numerico
+- [x] Validar tamanho correto do CPF
+- [x] Bloquear caracteres especiais indevidos
+- [x] Padronizar nomes de campos entre frontend e backend
+- [x] Resolver padronizacao `CPF` vs `IDT`
+- [x] Criar mascaras de frontend onde fizer sentido
+- [x] Garantir que a validacao real continue no backend
+- [x] Revisar padrao de CNH ou habilitacao
+- [x] Revisar campo cor com dropdown controlado
+- [x] Revisar secoes e destinos com dropdown controlado
+- [x] Validar upload de imagem em permissionario/pessoa nao autorizada (assinatura real do arquivo)
+- [x] Importacao CSV de veiculos com o mesmo schema do cadastro
+- [ ] Rodar `npm run normalize:documents` na homolog (simular, revisar invalidos, depois `--apply`)
 
 ## Fase 10: Suite Minima De Regressao
 
@@ -244,6 +247,14 @@ Baseado em `docs/backend-roadmap.md`.
 - **Removido:** endpoints `/system-images/*`, `/settings/system*`, `/settings/colors`, static `/public/*` do backend e bind mount `frontend/public`. O model `SystemSettings` continua no schema (sem uso) para nao exigir migration agora.
 - **Efeito na Fase 7:** os itens de smoke test de upload de logo/background deixam de existir; o smoke test passa a ser "trocar arquivo em `branding/`, `up -d`, conferir em dois navegadores".
 - As notas abaixo descrevem o comportamento anterior e ficam como historico.
+
+### Validacao de cadastros (Fase 9, 2026-11-24)
+
+- **Regras de texto:** `backend/src/lib/text-rules.ts` (espelhadas em `frontend/src/utils/validation.js`). Nomes: letras com acento/ç, espaco, apostrofo, ponto, hifen. Textos curtos: tambem numeros, `/ , ( ) º ª &`. Observacao: pontuacao de frase. Bloqueia `<`, `>`, `{`, `}`, `$`, `|`, `;`, barra invertida e crase.
+- **CPF/CNH:** gravados so com digitos (CPF com digitos verificadores; CNH 11 digitos, sem conferir DV para nao barrar documento real). Telas formatam na exibicao; busca do relatorio aceita com ou sem mascara. Registros antigos: `npm run normalize:documents` (simulacao por padrao).
+- **Visitante:** o formulario enviava `completeName`/`section` e nao enviava `isVisitor`, e o agendamento enviava `scheduleDate`/`scheduleTime`; o backend espera `name`/`target`/`scheduledDate`, entao os dois fluxos davam 400. Corrigido junto com o checkbox **A pe** (`onFoot`): sem ele, placa/modelo/cor sao obrigatorios; com ele, os campos do veiculo sao gravados vazios e o relatorio mostra "A pe".
+- **Cor e Secao:** dropdown no frontend (`ColorSelect` com "Outra"; `DestinationSelect` com a lista de destinos). O backend valida so o formato, para nao quebrar dados antigos fora da lista.
+- **CSV de veiculos:** colunas NOME, POSTO, MODELO, PLACA, COR (+ CPF, CNH, SECAO, ESQUADRAO opcionais), separador `,` ou `;`. CPF opcional so no CSV (planilhas antigas nao tem). Nao ha tela de importacao no frontend.
 
 ### Posto da Guarda sem login por IP (2026-11-24)
 
