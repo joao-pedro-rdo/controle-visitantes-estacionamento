@@ -27,7 +27,7 @@ As imagens podem ser privadas; o job de deploy autentica no Docker Hub antes de 
 
 O runner self-hosted de homologação já está instalado diretamente no servidor e o workflow seleciona os labels `self-hosted`, `linux` e `homolog`. O job de deploy faz um preflight e falha com mensagem clara se faltar `DEPLOY_PATH`, `.env`, `ssl/server.crt`, `ssl/server.key` ou acesso ao Docker. O usuário do serviço do runner precisa executar `docker`/`docker compose` sem sudo e ter permissão para gravar no diretório de deploy. Instruções operacionais estão em [`runners/README.md`](../runners/README.md).
 
-Crie o GitHub Environment `homolog` com a variável `DEPLOY_PATH` apontando para o diretório persistente correspondente, por exemplo `/opt/controle-visitantes`. O workflow espera que esse diretório já tenha:
+Crie o GitHub Environment `homolog` com `DEPLOY_PATH` (como Variable ou Secret; o workflow aceita os dois, preferindo a Variable) apontando para o diretório persistente correspondente, por exemplo `/opt/controle-visitantes`. O workflow espera que esse diretório já tenha:
 
 - `.env` com configuração própria daquele ambiente;
 - `ssl/server.crt` e `ssl/server.key` para o Nginx;

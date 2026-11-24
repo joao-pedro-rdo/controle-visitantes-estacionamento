@@ -96,7 +96,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Install deployment files in the host directory
         env:
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
         run: |
           test -n "$DEPLOY_PATH"
           # branding/ (logo e fundo) é mantida no host, como o .env; nunca vem do Git.
@@ -104,7 +104,7 @@ jobs:
           cp docker/compose.yaml docker/compose.nginx.yaml docker/nginx.conf "$DEPLOY_PATH/docker/"
       - name: Pull and restart production services
         env:
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
         run: |
           export IMAGE_TAG=latest
           docker compose --project-name controle-prod --env-file "$DEPLOY_PATH/.env" \
