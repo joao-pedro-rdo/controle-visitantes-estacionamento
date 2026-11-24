@@ -278,5 +278,5 @@ Baseado em `docs/backend-roadmap.md`.
 
 ### Frontend / normalizacao de dados (aplicar na Fase 9 ou quando fizer sentido)
 
-- [ ] **CPF mascarado vs armazenado (vehicles):** o `VehicleForm` envia `idNumber` mascarado (`999.999.999-99`); o backend aceita (valida digitos) mas armazena o valor com mascara. Se surgir relatorio/busca por CPF, sera preciso normalizar. Relacionado ao item da Fase 9 `Resolver padronizacao CPF vs IDT`.
-- [ ] **`vehicles-csv-controller.js` bypassa o schema novo:** o import de CSV insere `idNumber: 'N/A'` e placa crua direto via Prisma, fora das regras de validacao de vehicles (CPF/placa normalizada). Harmonizar quando a Fase 7 (uploads/settings) ou uma futura UI de importacao CSV passar por ali.
+- [x] **CPF mascarado vs armazenado (vehicles):** _(resolvido na Fase 9, 2026-11-24)_ o `VehicleForm` envia `idNumber` mascarado (`999.999.999-99`); o backend aceita (valida digitos) mas armazena o valor com mascara. Se surgir relatorio/busca por CPF, sera preciso normalizar. Relacionado ao item da Fase 9 `Resolver padronizacao CPF vs IDT`.
+- [x] **`vehicles-csv-controller.js` bypassa o schema novo:** _(resolvido na Fase 9, 2026-11-24)_ o import de CSV insere `idNumber: 'N/A'` e placa crua direto via Prisma, fora das regras de validacao de vehicles (CPF/placa normalizada). Harmonizar quando a Fase 7 (uploads/settings) ou uma futura UI de importacao CSV passar por ali.
