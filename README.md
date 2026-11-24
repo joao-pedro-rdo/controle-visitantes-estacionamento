@@ -12,7 +12,39 @@ Esse projeto usa o repositorio do github com submodulos, para clonar o projeto c
 git clone --recurse-submodules https://github.com/joao-pedro-rdo/controle-visitantes-estacionamento.git
 ```
 
-Copie `.env.example` para `.env` e ajuste os valores locais. O modo padrão de desenvolvimento não sobe o Nginx; assim é possível desenvolver e testar frontend/API sem TLS:
+Copie `.env.example` para `.env` e ajuste os valores locais.
+
+### Senhas e segredos do `.env` (primeira inicialização)
+
+Na primeira inicialização de cada ambiente (dev, homolog, produção), troque todos os valores `change_me` por segredos fortes e diferentes entre si. Gere cada um com:
+
+```bash
+openssl rand -hex 32
+```
+
+Rode o comando uma vez para cada variável:
+
+| Variável | Observação |
+| --- | --- |
+| `POSTGRES_PASSWORD` | Use a mesma senha dentro de `DATABASE_URL`. A saída hex não tem caracteres que quebrem a URL. |
+| `JWT_SECRET` | Trocar invalida as sessões abertas (usuários precisam logar de novo). |
+| `JWT_REFRESH_SECRET` | Idem. |
+| `COOKIE_SECRET` | Idem. |
+| `IMAGE_ENCRYPTION_KEY` | **Defina uma vez e nunca mais troque**: as fotos de visitantes/permissionários já salvas só abrem com a mesma chave. Guarde uma cópia em local seguro. |
+
+Exemplo para gerar tudo de uma vez e colar no `.env`:
+
+```bash
+for v in POSTGRES_PASSWORD JWT_SECRET JWT_REFRESH_SECRET COOKIE_SECRET IMAGE_ENCRYPTION_KEY; do
+  echo "$v=$(openssl rand -hex 32)"
+done
+```
+
+Os segredos ficam apenas no `.env` de cada servidor; nunca faça commit deles. Se o banco já foi criado, mudar `POSTGRES_PASSWORD` no `.env` não altera a senha do PostgreSQL (ela só é aplicada quando o volume é criado).
+
+### Subindo o ambiente de desenvolvimento
+
+O modo padrão de desenvolvimento não sobe o Nginx; assim é possível desenvolver e testar frontend/API sem TLS:
 
 ```bash
 docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml up --build
