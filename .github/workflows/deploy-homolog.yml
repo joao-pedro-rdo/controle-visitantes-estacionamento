@@ -7,6 +7,8 @@ on:
       - "**.md"
       - ".gitignore"
       - ".vscode/**"
+  # Permite redeploy manual (Actions → Build and deploy homolog → Run workflow).
+  workflow_dispatch:
 
 permissions:
   contents: read
