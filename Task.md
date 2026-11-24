@@ -256,6 +256,11 @@ Baseado em `docs/backend-roadmap.md`.
 - **Cor e Secao:** dropdown no frontend (`ColorSelect` com "Outra"; `DestinationSelect` com a lista de destinos). O backend valida so o formato, para nao quebrar dados antigos fora da lista.
 - **CSV de veiculos:** colunas NOME, POSTO, MODELO, PLACA, COR (+ CPF, CNH, SECAO, ESQUADRAO opcionais), separador `,` ou `;`. CPF opcional so no CSV (planilhas antigas nao tem). Nao ha tela de importacao no frontend.
 
+### Autopreenchimento do visitante pelo CPF (2026-11-24)
+
+- **Decisao:** sem mudar o banco. `GET /entries/visitor-lookup/:cpf` (perfis Guarda) devolve a entrada de visitante mais recente com aquele CPF (com ou sem mascara, para cobrir registros antigos): nome, telefone e veiculo. A foto nao e devolvida; a Guarda tira uma nova.
+- **Tela:** CPF e o primeiro campo. Ao completar um CPF valido, a busca preenche apenas campos vazios, tudo editavel, e mostra a data da ultima visita. Veiculo so e preenchido se a visita anterior teve placa e "A pe" nao estiver marcado. Falha na busca nao bloqueia o cadastro.
+
 ### Posto da Guarda sem login por IP (2026-11-24)
 
 - **Decisao:** maquinas da guarita entram como Guarda sem senha quando o IP esta em `GUARDA_TRUSTED_IPS` (IPs/CIDRs). Sessao com login tem prioridade; cookie invalido/expirado no posto cai no perfil de posto. Implementado em `backend/src/lib/guard-station.ts` + `requireAuth`; usuario virtual `id: 0`, `login: posto-guarda`, `station: true`.
