@@ -245,6 +245,13 @@ Baseado em `docs/backend-roadmap.md`.
 - **Efeito na Fase 7:** os itens de smoke test de upload de logo/background deixam de existir; o smoke test passa a ser "trocar arquivo em `branding/`, `up -d`, conferir em dois navegadores".
 - As notas abaixo descrevem o comportamento anterior e ficam como historico.
 
+### Posto da Guarda sem login por IP (2026-11-24)
+
+- **Decisao:** maquinas da guarita entram como Guarda sem senha quando o IP esta em `GUARDA_TRUSTED_IPS` (IPs/CIDRs). Sessao com login tem prioridade; cookie invalido/expirado no posto cai no perfil de posto. Implementado em `backend/src/lib/guard-station.ts` + `requireAuth`; usuario virtual `id: 0`, `login: posto-guarda`, `station: true`.
+- **Proxy:** `TRUST_PROXY` (contagem de proxies, `1` no Compose) controla quando o `X-Forwarded-For` e usado; `true` e recusado. Testes em `src/test/routes/guard-station-routes.test.ts` cobrem cabecalho forjado sem proxy confiavel e IP prefixado pelo cliente.
+- **Frontend:** navbar mostra "(posto da Guarda)" e o botao Sair vira "Entrar com usuario".
+- **Pendente:** validar na homolog com o IP real da guarita (smoke test da Fase 7).
+
 ### Fase 7 - comportamento de imagens e settings (historico, substituido acima)
 
 - **Mapa de servico das imagens:** `/public/*` serve `frontend/public` via bind mount em Docker (imagens padrao `logo.png`/`bg-cover.jpg` do frontend). `/system-images/*` serve `backend/public/img` (Imagem Customizada, uploads S2). `/images/{visitors,permissionarios,pessoas-nao-autorizadas}/*` servem uploads criptografados de `backend/uploads`, com acesso autenticado.

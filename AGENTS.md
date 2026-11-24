@@ -20,6 +20,7 @@
 - Nginx is an optional Compose overlay at `docker/compose.nginx.yaml`. It terminates HTTPS and proxies `/api/` to the backend while stripping the `/api` prefix (`docker/nginx.conf`).
 - Frontend API code is written around that proxy: `frontend/src/services/api-config.js` falls back to `/api`, and `frontend/src/services/client.js` sends `withCredentials: true`.
 - Auth is cookie-based in practice, not localStorage-based: login sets an `accessToken` cookie, frontend auth checks `GET /auth/check`, and most route protection depends on cookies surviving the proxy.
+- Guard workstations can skip login: without a valid session, requests whose `request.ip` is in `GUARDA_TRUSTED_IPS` are authenticated as a virtual Guarda user (`id: 0`, `station: true`), see `backend/src/lib/guard-station.ts`. `request.ip` honors `X-Forwarded-For` only per `TRUST_PROXY` (hop count, `1` in Compose; `true` is rejected). Keep the backend port unpublished in production, or the IP can be forged.
 
 ## Files And Data Coupling
 - Branding (logo, background, title, colors) is deploy-time config, not app data: a host `branding/` folder is mounted read-only into the frontend nginx at `/branding/`, and `frontend/docker/40-app-config.sh` renders `/config.js` (`window.__APP_CONFIG__`) from `APP_*` env vars at container start. The frontend reads it only through `src/config/branding.ts`; defaults live in `frontend/public/img/`. There is no upload endpoint for system images.

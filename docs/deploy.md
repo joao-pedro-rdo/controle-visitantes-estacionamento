@@ -49,6 +49,16 @@ Logo, imagem de fundo, título e cores são definidos por ambiente, no deploy, e
 
 Assim uma mesma imagem Docker serve qualquer OM ou ambiente, sem rebuild.
 
+## Posto da Guarda sem login
+
+As máquinas da guarita podem usar o sistema sem login, liberadas por IP:
+
+- `GUARDA_TRUSTED_IPS` no `.env` recebe IPs ou faixas CIDR separados por vírgula (ex.: `10.0.5.21, 10.0.5.22` ou `10.0.5.0/28`). Vazio desativa o recurso. Valor inválido impede o backend de subir;
+- sem sessão válida, essas máquinas recebem perfil **Guarda** (usuário `posto-guarda`). Quem fizer login nelas usa o próprio perfil; ao sair, a máquina volta ao perfil de posto. O perfil de posto nunca recebe permissões de S2;
+- reserve IP fixo para essas máquinas no DHCP. Qualquer computador que receber um IP da lista entra como Guarda;
+- o IP do cliente vem do `X-Forwarded-For` somente dos proxies confiáveis, definidos em `TRUST_PROXY`. No Compose o backend fica atrás de exatamente um Nginx (o do frontend ou o overlay `compose.nginx.yaml`, que proxia `/api/` direto para o backend), então o valor é `1`. `TRUST_PROXY=true` é recusado porque permitiria forjar o IP;
+- em produção a porta do backend não deve ser publicada (`compose.yaml` usa só `expose`). No `compose.dev.yaml` a porta 5000 é publicada, então lá um acesso direto ao backend consegue forjar o IP: use o recurso só para teste nesse modo.
+
 ## Estrutura Compose
 
 - `docker/compose.yaml`: serviços comuns e imagens; não inicia Nginx.
