@@ -22,8 +22,7 @@
 - Auth is cookie-based in practice, not localStorage-based: login sets an `accessToken` cookie, frontend auth checks `GET /auth/check`, and most route protection depends on cookies surviving the proxy.
 
 ## Files And Data Coupling
-- In Docker, backend system images share the persistent host `frontend/public` bind mount at `/app/public`; deployment sync merges default frontend assets into that directory so uploaded system images are preserved.
-- Backend serves that directory at `/public/*` and also exposes `/system-images/*`; frontend hooks still assume default files like `/img/logo.png` and `/img/bg-cover.jpg`. If you change image handling, check both backend controllers and frontend hooks/components.
+- Branding (logo, background, title, colors) is deploy-time config, not app data: a host `branding/` folder is mounted read-only into the frontend nginx at `/branding/`, and `frontend/docker/40-app-config.sh` renders `/config.js` (`window.__APP_CONFIG__`) from `APP_*` env vars at container start. The frontend reads it only through `src/config/branding.ts`; defaults live in `frontend/public/img/`. There is no upload endpoint for system images.
 - User-uploaded visitor/permissionario images are served from backend routes under `/images/...`, not directly from the frontend build.
 
 ## Codebase Entry Points

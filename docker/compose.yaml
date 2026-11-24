@@ -38,7 +38,6 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ../frontend/public:/app/public
       - visitor-images:/app/uploads
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -53,6 +52,15 @@ services:
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
       - HTTPS=${FRONTEND_HTTPS}
+      # Identidade visual (gera /config.js na subida do container)
+      - APP_TITLE=${APP_TITLE:-}
+      - APP_PRIMARY_COLOR=${APP_PRIMARY_COLOR:-}
+      - APP_SECONDARY_COLOR=${APP_SECONDARY_COLOR:-}
+      - APP_LOGO_FILE=${APP_LOGO_FILE:-logo.png}
+      - APP_BACKGROUND_FILE=${APP_BACKGROUND_FILE:-bg-cover.png}
+    volumes:
+      # Pasta do host com logo e fundo. Relativa a docker/; padrão: ../branding
+      - ${BRANDING_DIR:-../branding}:/usr/share/nginx/html/branding:ro
     expose:
       - "3000"
     depends_on:

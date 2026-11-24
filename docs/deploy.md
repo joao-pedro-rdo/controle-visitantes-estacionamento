@@ -31,11 +31,23 @@ Crie o GitHub Environment `homolog` com a variável `DEPLOY_PATH` apontando para
 
 - `.env` com configuração própria daquele ambiente;
 - `ssl/server.crt` e `ssl/server.key` para o Nginx;
-- espaço persistente para os volumes Docker de PostgreSQL, imagens de visitantes e imagens customizadas do sistema.
+- `branding/` com a **Logo do Sistema** e a **Imagem de Fundo** daquele ambiente (opcional; ver abaixo);
+- espaço persistente para os volumes Docker de PostgreSQL e imagens de visitantes.
 
 O deploy de homologação usa o projeto Compose `controle-homolog`. Os diretórios `.env` e `ssl/` não são copiados do checkout. A workflow de produção está no arquivo `.github/workflows/deploy-prod.yml.disabled`, que o GitHub não executa; ela só deve ser habilitada quando o runner e as configurações de produção forem preparados.
 
 **Migração do stack já existente:** antes do primeiro deploy em qualquer servidor, faça backup do banco atual e identifique explicitamente o volume/serviço PostgreSQL que contém os dados. O Compose novo cria volumes vinculados aos nomes `controle-homolog`/`controle-prod`; não aponte produção para um volume novo sem restaurar/conectar os dados existentes e validar a aplicação. Preserve também os volumes de uploads/imagens e configure permissões/caminhos antes de ativar o workflow.
+
+## Identidade Visual
+
+Logo, imagem de fundo, título e cores são definidos por ambiente, no deploy, e não mais pela tela de Configurações:
+
+- os arquivos ficam em `branding/` no host (`BRANDING_DIR`, relativo a `docker/`; padrão `../branding`), montada somente leitura no frontend em `/branding/`;
+- `APP_LOGO_FILE`, `APP_BACKGROUND_FILE`, `APP_TITLE`, `APP_PRIMARY_COLOR` e `APP_SECONDARY_COLOR` ficam no `.env`;
+- na subida, o container do frontend gera `/config.js` (`frontend/docker/40-app-config.sh`). Arquivo ausente ou valor inválido cai no padrão embutido na imagem;
+- para aplicar uma troca, rode `docker compose ... up -d`. `config.js` e `/branding/` são servidos com `Cache-Control: no-cache` e as imagens levam `?v=<mtime>`, então todos os dispositivos passam a ver a versão nova.
+
+Assim uma mesma imagem Docker serve qualquer OM ou ambiente, sem rebuild.
 
 ## Estrutura Compose
 

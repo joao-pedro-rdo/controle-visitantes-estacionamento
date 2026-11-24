@@ -99,9 +99,9 @@ jobs:
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
           test -n "$DEPLOY_PATH"
-          mkdir -p "$DEPLOY_PATH/docker" "$DEPLOY_PATH/frontend/public"
+          # branding/ (logo e fundo) é mantida no host, como o .env; nunca vem do Git.
+          mkdir -p "$DEPLOY_PATH/docker" "$DEPLOY_PATH/branding"
           cp docker/compose.yaml docker/compose.nginx.yaml docker/nginx.conf "$DEPLOY_PATH/docker/"
-          cp -a frontend/public/. "$DEPLOY_PATH/frontend/public/"
       - name: Pull and restart production services
         env:
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}

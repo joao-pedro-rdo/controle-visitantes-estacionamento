@@ -238,7 +238,14 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Notas E Decisoes Pendentes
 
-### Fase 7 - comportamento de imagens e settings (registrado)
+### Identidade visual movida para o deploy (2026-11-24)
+
+- **Decisao:** logo, fundo, titulo e cores deixam de ser configurados pela tela (upload S2) e passam a ser configuracao de ambiente: pasta `branding/` no host + variaveis `APP_*` no `.env`, renderizadas em `/config.js` na subida do container do frontend. Ver `docs/deploy.md#identidade-visual`.
+- **Removido:** endpoints `/system-images/*`, `/settings/system*`, `/settings/colors`, static `/public/*` do backend e bind mount `frontend/public`. O model `SystemSettings` continua no schema (sem uso) para nao exigir migration agora.
+- **Efeito na Fase 7:** os itens de smoke test de upload de logo/background deixam de existir; o smoke test passa a ser "trocar arquivo em `branding/`, `up -d`, conferir em dois navegadores".
+- As notas abaixo descrevem o comportamento anterior e ficam como historico.
+
+### Fase 7 - comportamento de imagens e settings (historico, substituido acima)
 
 - **Mapa de servico das imagens:** `/public/*` serve `frontend/public` via bind mount em Docker (imagens padrao `logo.png`/`bg-cover.jpg` do frontend). `/system-images/*` serve `backend/public/img` (Imagem Customizada, uploads S2). `/images/{visitors,permissionarios,pessoas-nao-autorizadas}/*` servem uploads criptografados de `backend/uploads`, com acesso autenticado.
 - **Fallback explicito (Imagem Padrao):** `GET /system-images/current` retorna `null` para o tipo sem customizacao (frontend aplica `/img/logo.png` e `/img/bg-cover.jpg`). `GET /settings/system` NÃO retorna `null`: devolve o objeto completo com os defaults quando nao ha customizacao (paridade com o comportamento antigo; e o que o frontend consome para titulo/logo/fundo). Default de background do backend foi alinhado para `/img/bg-cover.jpg` (antes `/img/background.jpg`), casando com o fallback usado no frontend.

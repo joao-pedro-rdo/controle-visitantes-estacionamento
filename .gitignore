@@ -134,3 +134,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Identidade visual local (mantida no host); só o README é versionado
+branding/*
+!branding/README.md
