@@ -12,9 +12,9 @@ Baseado em `docs/backend-roadmap.md`.
 - [x] Fase 5 concluida
 - [x] Fase 6 concluida
 - [ ] Fase 7 concluida (codigo feito; faltam smoke tests manuais Docker/Nginx)
-- [ ] Fase 8 concluida
+- [x] Fase 8 concluida
 - [x] Fase 9 concluida
-- [ ] Fase 10 concluida
+- [x] Fase 10 concluida
 
 ## Fase 0: Padrao Tecnico
 
@@ -191,15 +191,15 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 8: Observabilidade E Robustez
 
-- [ ] Reduzir `console.log` ruidoso
-- [ ] Padronizar logs relevantes
-- [ ] Padronizar contexto de logs
-- [ ] Garantir middleware de Prometheus antes das rotas
-- [ ] Validar que refactors nao quebraram metricas
-- [ ] Adicionar healthcheck claro
-- [ ] Revisar timeouts de integracoes externas
-- [ ] Revisar erros de vigilancia e cameras
-- [ ] Revisar tratamento de excecoes Prisma
+- [x] Reduzir `console.log` ruidoso
+- [x] Padronizar logs relevantes
+- [x] Padronizar contexto de logs
+- [x] Garantir middleware de Prometheus antes das rotas
+- [x] Validar que refactors nao quebraram metricas
+- [x] Adicionar healthcheck claro
+- [x] Revisar timeouts de integracoes externas
+- [x] Revisar erros de vigilancia e cameras
+- [x] Revisar tratamento de excecoes Prisma
 
 ## Fase 9: Hardening De Validacao
 
@@ -219,18 +219,18 @@ Baseado em `docs/backend-roadmap.md`.
 
 ## Fase 10: Suite Minima De Regressao
 
-- [ ] Cobrir Auth
-- [ ] Cobrir Vehicles
-- [ ] Cobrir Entries
-- [ ] Cobrir Permissionarios
-- [ ] Cobrir Pessoas nao autorizadas
-- [ ] Cobrir Settings e images
-- [ ] Garantir caso `200`
-- [ ] Garantir caso `400`
-- [ ] Garantir caso `401`
-- [ ] Garantir caso `403`
-- [ ] Garantir caso `404`
-- [ ] Garantir caso `409` quando aplicavel
+- [x] Cobrir Auth
+- [x] Cobrir Vehicles
+- [x] Cobrir Entries
+- [x] Cobrir Permissionarios
+- [x] Cobrir Pessoas nao autorizadas
+- [x] Cobrir Settings e images
+- [x] Garantir caso `200`
+- [x] Garantir caso `400`
+- [x] Garantir caso `401`
+- [x] Garantir caso `403`
+- [x] Garantir caso `404`
+- [x] Garantir caso `409` quando aplicavel
 
 ## Proxima Execucao Recomendada
 
@@ -255,6 +255,15 @@ Baseado em `docs/backend-roadmap.md`.
 - **Visitante:** o formulario enviava `completeName`/`section` e nao enviava `isVisitor`, e o agendamento enviava `scheduleDate`/`scheduleTime`; o backend espera `name`/`target`/`scheduledDate`, entao os dois fluxos davam 400. Corrigido junto com o checkbox **A pe** (`onFoot`): sem ele, placa/modelo/cor sao obrigatorios; com ele, os campos do veiculo sao gravados vazios e o relatorio mostra "A pe".
 - **Cor e Secao:** dropdown no frontend (`ColorSelect` com "Outra"; `DestinationSelect` com a lista de destinos). O backend valida so o formato, para nao quebrar dados antigos fora da lista.
 - **CSV de veiculos:** colunas NOME, POSTO, MODELO, PLACA, COR (+ CPF, CNH, SECAO, ESQUADRAO opcionais), separador `,` ou `;`. CPF opcional so no CSV (planilhas antigas nao tem). Nao ha tela de importacao no frontend.
+
+### Observabilidade e regressao (Fases 8 e 10, 2026-11-24)
+
+- **Logs:** logger pino do Fastify em JSON no stdout (`LOG_LEVEL`, padrao `info`). Erros 5xx em `error` com `reqId`; 4xx e cada requisicao so em `debug`. Sem `console.*` no runtime do backend; frontend sem `console.log` (mantidos `console.error`).
+- **Health:** `/health` faz `SELECT 1` com timeout de 2s e responde 503 (`degraded`) sem banco; e o healthcheck do container.
+- **Prisma:** P2002/P2003 -> 409, P2025 -> 404, P2000 -> 400, P1001/P1002/P1017 -> 503.
+- **Camera:** `/surveillance/latest-photo` agora exige perfil Guarda, tem timeout (`SURVEILLANCE_TIMEOUT_MS`, 5s) e responde 503 sem configuracao, 502/504 em falha. Variaveis habilitadas no `compose.yaml`.
+- **Sem JS no backend `src/`.** Rotas `/migrate-permissionario-image*` viraram `npm run encrypt:permissionario-images` (simulacao por padrao). `user-controller.js` e `helpers/utils.js` removidos (sem uso; tinham chave JWT fixa).
+- **Regressao:** 335 testes; toda rota tem caso de sucesso, 400/401/403/404 e 409 onde se aplica.
 
 ### Autopreenchimento do visitante pelo CPF (2026-11-24)
 
