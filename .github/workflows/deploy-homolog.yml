@@ -84,12 +84,25 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: [selfhosted-homolog-gda, homolog-gda]
+    runs-on: [self-hosted, linux, homolog]
     environment: homolog
     steps:
+      # O deploy só copia arquivos de docker/; os submódulos já viraram imagens.
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - name: Preflight (host configuration)
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          fail=0
+          if [ -z "$DEPLOY_PATH" ]; then
+            echo "::error::Variável DEPLOY_PATH não definida no Environment 'homolog'"; exit 1
+          fi
+          [ -f "$DEPLOY_PATH/.env" ] || { echo "::error::Falta $DEPLOY_PATH/.env"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.crt" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.crt"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.key" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.key"; fail=1; }
+          docker version --format 'docker {{.Server.Version}}' || { echo "::error::Usuário do runner sem acesso ao Docker"; fail=1; }
+          docker compose version || { echo "::error::docker compose (plugin v2) não instalado"; fail=1; }
+          exit $fail
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}

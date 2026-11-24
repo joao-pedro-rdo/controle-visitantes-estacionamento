@@ -2,12 +2,13 @@
 
 ## Homologação (ativo)
 
-O runner está instalado diretamente no servidor de homologação. O workflow `.github/workflows/deploy-homolog.yml` seleciona-o pelos labels customizados:
+O runner está instalado diretamente no servidor de homologação. O workflow `.github/workflows/deploy-homolog.yml` seleciona-o pelos labels:
 
-- `selfhosted-homolog-gda`
-- `homolog-gda`
+- `self-hosted`
+- `linux`
+- `homolog` (label customizado)
 
-O GitHub também mantém labels padrão de sistema operacional/arquitetura. Confirme em **Settings → Actions → Runners** que o runner está online e tem ambos os labels.
+O GitHub também mantém labels padrão de sistema operacional/arquitetura. Confirme em **Settings → Actions → Runners** que o runner está online e tem esses labels.
 
 O usuário que executa o serviço do runner deve:
 

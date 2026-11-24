@@ -25,7 +25,7 @@ As imagens podem ser privadas; o job de deploy autentica no Docker Hub antes de 
 
 ## Runner e ambiente de homologação
 
-O runner self-hosted de homologação já está instalado diretamente no servidor e o workflow seleciona os labels customizados `selfhosted-homolog-gda` e `homolog-gda`. O usuário do serviço do runner precisa executar `docker`/`docker compose` sem sudo e ter permissão para gravar no diretório de deploy. Instruções operacionais estão em [`runners/README.md`](../runners/README.md).
+O runner self-hosted de homologação já está instalado diretamente no servidor e o workflow seleciona os labels `self-hosted`, `linux` e `homolog`. O job de deploy faz um preflight e falha com mensagem clara se faltar `DEPLOY_PATH`, `.env`, `ssl/server.crt`, `ssl/server.key` ou acesso ao Docker. O usuário do serviço do runner precisa executar `docker`/`docker compose` sem sudo e ter permissão para gravar no diretório de deploy. Instruções operacionais estão em [`runners/README.md`](../runners/README.md).
 
 Crie o GitHub Environment `homolog` com a variável `DEPLOY_PATH` apontando para o diretório persistente correspondente, por exemplo `/opt/controle-visitantes`. O workflow espera que esse diretório já tenha:
 
@@ -77,7 +77,7 @@ Deploy usa `docker/compose.yaml` com `docker/compose.nginx.yaml`; a tag é defin
 
 1. Adicionar `DOCKERHUB_USERNAME` e `DOCKERHUB_TOKEN` como repository secrets.
 2. Criar o GitHub Environment `homolog` com `DEPLOY_PATH`.
-3. Confirmar que o runner instalado no servidor tem labels `selfhosted-homolog-gda`, `homolog-gda`, acesso ao Docker e permissão de escrita no deploy path.
+3. Confirmar que o runner instalado no servidor tem os labels `self-hosted`, `linux`, `homolog`, acesso ao Docker e permissão de escrita no deploy path.
 4. Criar/atualizar a branch `homolog` por merge de `develop` quando quiser testar no servidor.
 5. Preencher `.env` e instalar certificados TLS no servidor antes do primeiro deploy.
 
