@@ -125,4 +125,13 @@ jobs:
           docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env" \
             -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" pull backend frontend
           docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env" \
-            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" up -d --wait
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" up -d --wait --wait-timeout 300
+      - name: Show service status and logs on failure
+        if: failure()
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+        run: |
+          export IMAGE_TAG=homolog
+          dc() { docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env"             -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" "$@"; }
+          dc ps -a
+          dc logs --no-color --tail 200 backend frontend nginx
