@@ -104,7 +104,7 @@ No GitHub:
 
 - runner self-hosted no servidor de produção com os labels `self-hosted`, `linux` e `prod`, cujo usuário rode `docker` sem `sudo`;
 - Environment `production` com `DEPLOY_PATH` (Variable ou Secret). Recomendado: em **Required reviewers**, colocar você mesmo, para cada deploy pedir aprovação;
-- variável `PROD_DEPLOY_ENABLED`: **deixe sem definir até o corte**. Sem ela, o merge em `main` só valida e publica as imagens `:latest` e `:sha-<commit>`.
+- variável `PROD_DEPLOY_ENABLED`: **deixe sem definir** durante a migração. Sem ela, o merge em `main` só valida e publica as imagens `:latest` e `:sha-<commit>`. O primeiro deploy é manual (passo 5). Depois que tudo estiver validado, defina `PROD_DEPLOY_ENABLED = true` para os próximos merges em `main` serem implantados pelo runner (com backup automático antes).
 
 No servidor, em `DEPLOY_PATH`:
 
@@ -127,7 +127,7 @@ docker compose -f compose-prod.yml down
 
 ```bash
 cd "$DEPLOY_PATH"
-mkdir -p docker && cp <checkout>/docker/{compose.yaml,compose.nginx.yaml,nginx.conf} docker/   # ou deixe o pipeline copiar
+mkdir -p docker && cp <checkout-de-main>/docker/{compose.yaml,compose.nginx.yaml,nginx.conf} docker/
 DC="docker compose -p controle-prod --env-file .env -f docker/compose.yaml -f docker/compose.nginx.yaml"
 $DC up -d --wait db
 $DC exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-acl' < prod-antes-migracao.dump
@@ -135,7 +135,17 @@ docker volume create controle-prod_visitor-images   # o Compose avisa que o volu
 docker run --rm -v controle-prod_visitor-images:/data -v "$PWD":/in alpine tar xzf /in/prod-uploads.tar.gz -C /data
 ```
 
-4. Defina `PROD_DEPLOY_ENABLED = true` e rode o workflow **Build and deploy production**: Actions → Run workflow, ou re-run do último run de `main`. Ele faz backup, puxa as imagens e sobe tudo; as migrações rodam no início do backend.
+4. Suba o sistema novo **manualmente** (o primeiro deploy não usa o runner). Use a tag `sha-<commit de main>` que o workflow publicou; ela aparece no resumo do run, ou use `latest`:
+
+```bash
+export IMAGE_TAG=sha-<commit-de-main>   # ou latest
+docker login                            # se as imagens forem privadas
+$DC pull backend frontend
+$DC up -d --wait --wait-timeout 300
+$DC logs backend | grep -iE 'migrat|error' | head -20
+```
+
+   As migrações rodam no início do backend. Se o `--wait` falhar, veja `$DC ps -a` e `$DC logs --tail 200 backend`.
 5. Rode a normalização (simulação e depois `-- --apply`), como no ensaio, com `-p controle-prod`.
 6. Repita os testes de tela do ensaio.
 
