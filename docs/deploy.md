@@ -59,6 +59,19 @@ As máquinas da guarita podem usar o sistema sem login, liberadas por IP:
 - o IP do cliente vem do `X-Forwarded-For` somente dos proxies confiáveis, definidos em `TRUST_PROXY`. No Compose o backend fica atrás de exatamente um Nginx (o do frontend ou o overlay `compose.nginx.yaml`, que proxia `/api/` direto para o backend), então o valor é `1`. `TRUST_PROXY=true` é recusado porque permitiria forjar o IP;
 - em produção a porta do backend não deve ser publicada (`compose.yaml` usa só `expose`). No `compose.dev.yaml` a porta 5000 é publicada, então lá um acesso direto ao backend consegue forjar o IP: use o recurso só para teste nesse modo.
 
+## Atualizar uma instalação antiga
+
+O banco não muda de estrutura além das migrações Prisma (aplicadas sozinhas quando o backend sobe). O que muda é o formato dos dados: o sistema novo grava **CPF e CNH só com dígitos** e **placa sem hífen e em maiúsculas** (`ABC1234`, `BRA2E19`), e mostra a máscara apenas na tela. As buscas por QR, placa e CPF comparam o valor exato, então registros antigos com máscara precisam ser normalizados uma vez:
+
+1. Backup antes de tudo: `docker compose --env-file .env -f docker/compose.yaml exec db pg_dump -U <POSTGRES_USER> -d <POSTGRES_DB> -Fc > backup-antes-da-atualizacao.dump`;
+2. Suba a versão nova normalmente (as migrações rodam no início do backend);
+3. Simule: `docker compose --env-file .env -f docker/compose.yaml exec backend npm run normalize:documents`. Nada é gravado; a saída lista o que seria normalizado e o que ficará como está;
+4. Revise a lista "Não alterados": valores inválidos (`N/A`, CPF com dígito errado) e valores que ficariam iguais a outro registro (ex.: o mesmo veículo cadastrado como `ABC-1234` e `ABC1234`). Corrija pela tela o que for importante; o resto continua funcionando, só não será achado pela busca exata;
+5. Grave: o mesmo comando com `-- --apply`. Pode ser repetido sem efeito colateral;
+6. Se houver fotos de permissionário anteriores à criptografia, faça o mesmo com `npm run encrypt:permissionario-images` (simulação e depois `-- --apply`).
+
+O script cobre: Veículos (CPF, CNH, placa), Permissionários (placa), Pessoas Não Autorizadas (CPF) e o histórico de entradas (CPF do visitante e placa). Placas fora do padrão no histórico (`N/A` etc.) são mantidas e só aparecem na contagem.
+
 ## Estrutura Compose
 
 - `docker/compose.yaml`: serviços comuns e imagens; não inicia Nginx.
