@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      secrets:
+        - npm-ca
+
+secrets:
+  npm-ca:
+    file: ${NPM_CA_FILE:?configure-NPM_CA_FILE-as-a-PEM-CA-path-in-.env}

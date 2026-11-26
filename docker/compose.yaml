@@ -1,0 +1,103 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ${BACKEND_IMAGE:-joaoprdo/controle-visitantes-backend}:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    expose:
+      - "5000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - ENDPOINT=${ENDPOINT}
+      - HTTPS=${HTTPS}
+      # Câmera da recepção (opcional; vazio = recurso desativado)
+      - SURVEILLANCE_API_URL=${SURVEILLANCE_API_URL:-}
+      - SURVEILLANCE_API_CAMERA=${SURVEILLANCE_API_CAMERA:-}
+      - SURVEILLANCE_API_USERNAME=${SURVEILLANCE_API_USERNAME:-}
+      - SURVEILLANCE_API_PASSWORD=${SURVEILLANCE_API_PASSWORD:-}
+      - SURVEILLANCE_TIMEOUT_MS=${SURVEILLANCE_TIMEOUT_MS:-5000}
+      - SURVEILLANCE_TLS_INSECURE=${SURVEILLANCE_TLS_INSECURE:-true}
+      # info (padrão) ou debug (mostra cada requisição e erros 4xx)
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - IMAGE_ENCRYPTION_KEY=${IMAGE_ENCRYPTION_KEY}
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      # Posto da Guarda sem login: IPs/CIDRs liberados (vazio = desativado).
+      - GUARDA_TRUSTED_IPS=${GUARDA_TRUSTED_IPS:-}
+      # O backend fica atrás de exatamente um Nginx (frontend ou overlay nginx).
+      - TRUST_PROXY=${TRUST_PROXY:-1}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - visitor-images:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-joaoprdo/controle-visitantes-frontend}:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - HTTPS=${FRONTEND_HTTPS}
+      # Identidade visual (gera /config.js na subida do container)
+      - APP_TITLE=${APP_TITLE:-}
+      - APP_PRIMARY_COLOR=${APP_PRIMARY_COLOR:-}
+      - APP_SECONDARY_COLOR=${APP_SECONDARY_COLOR:-}
+      - APP_LOGO_FILE=${APP_LOGO_FILE:-logo.png}
+      - APP_BACKGROUND_FILE=${APP_BACKGROUND_FILE:-bg-cover.png}
+    volumes:
+      # Pasta do host com logo e fundo. Relativa a docker/; padrão: ../branding
+      - ${BRANDING_DIR:-../branding}:/usr/share/nginx/html/branding:ro
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+
+  prometheus:
+    profiles: [observability]
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+  grafana:
+    profiles: [observability]
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  db:
+  visitor-images:
+  prometheus_data:
+  grafana_data:

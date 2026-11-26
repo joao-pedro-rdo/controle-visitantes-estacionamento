@@ -1,0 +1,167 @@
+name: Build and deploy production
+
+# Fluxo: merge homolog -> main publica as imagens :latest e :sha-<commit>.
+# O job de deploy só roda quando a variável de repositório/ambiente
+# PROD_DEPLOY_ENABLED = "true". Até lá (ex.: durante a migração manual da
+# instalação antiga), o pipeline apenas valida e publica as imagens.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".gitignore"
+      - ".vscode/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  BACKEND_IMAGE: joaoprdo/controle-visitantes-backend
+  FRONTEND_IMAGE: joaoprdo/controle-visitantes-frontend
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm test
+        working-directory: backend
+      - run: npm run build
+        working-directory: backend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        env:
+          CI: "false"
+        working-directory: frontend
+
+  build-and-push:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:sha-${{ github.sha }}
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            REACT_APP_API_URL=/api
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}
+      - name: Summary
+        run: |
+          {
+            echo "### Imagens publicadas"
+            echo "- \`${BACKEND_IMAGE}:sha-${GITHUB_SHA}\` (também \`:latest\`)"
+            echo "- \`${FRONTEND_IMAGE}:sha-${GITHUB_SHA}\` (também \`:latest\`)"
+            echo
+            echo "Deploy automático: \`${{ vars.PROD_DEPLOY_ENABLED == 'true' && 'habilitado' || 'desligado (PROD_DEPLOY_ENABLED != true)' }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: build-and-push
+    if: vars.PROD_DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, linux, prod]
+    environment: production
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+      # Tag imutável do commit: o deploy é reprodutível e o rollback é
+      # re-executar o run de um commit anterior.
+      IMAGE_TAG: sha-${{ github.sha }}
+      COMPOSE_PROJECT: controle-prod
+    steps:
+      # O deploy só copia arquivos de docker/; os submódulos já viraram imagens.
+      - uses: actions/checkout@v4
+      - name: Preflight (host configuration)
+        run: |
+          fail=0
+          if [ -z "$DEPLOY_PATH" ]; then
+            echo "::error::DEPLOY_PATH não definida (Variable ou Secret do Environment 'production' ou do repositório)"; exit 1
+          fi
+          [ -f "$DEPLOY_PATH/.env" ] || { echo "::error::Falta $DEPLOY_PATH/.env"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.crt" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.crt"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.key" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.key"; fail=1; }
+          if [ -f "$DEPLOY_PATH/.env" ]; then
+            # Sem IMAGE_ENCRYPTION_KEY (e JWT_SECRET) iguais aos da instalação
+            # antiga, as fotos já gravadas não abrem mais.
+            grep -qE '^IMAGE_ENCRYPTION_KEY=.{32,}' "$DEPLOY_PATH/.env" \
+              || { echo "::error::IMAGE_ENCRYPTION_KEY ausente ou com menos de 32 caracteres no .env"; fail=1; }
+          fi
+          docker version --format 'docker {{.Server.Version}}' || { echo "::error::Usuário do runner sem acesso ao Docker"; fail=1; }
+          docker compose version || { echo "::error::docker compose (plugin v2) não instalado"; fail=1; }
+          exit $fail
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Install deployment files in the host directory
+        run: |
+          # branding/ (logo e fundo) é mantida no host, como o .env; nunca vem do Git.
+          mkdir -p "$DEPLOY_PATH/docker" "$DEPLOY_PATH/branding" "$DEPLOY_PATH/backups"
+          cp docker/compose.yaml docker/compose.nginx.yaml docker/nginx.conf "$DEPLOY_PATH/docker/"
+      - name: Backup database before deploy
+        run: |
+          dc() { docker compose --project-name "$COMPOSE_PROJECT" --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" "$@"; }
+          if [ -n "$(dc ps -q db)" ]; then
+            out="$DEPLOY_PATH/backups/pre-deploy-$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}.dump"
+            dc exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$out"
+            test -s "$out"
+            echo "Backup: $out ($(du -h "$out" | cut -f1))"
+            # Mantém os 15 backups mais recentes.
+            ls -1t "$DEPLOY_PATH"/backups/pre-deploy-*.dump | tail -n +16 | xargs -r rm -f
+          else
+            echo "Banco do projeto $COMPOSE_PROJECT ainda não está rodando; nada a copiar."
+          fi
+      - name: Pull and restart production services
+        run: |
+          dc() { docker compose --project-name "$COMPOSE_PROJECT" --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" "$@"; }
+          dc pull backend frontend
+          dc up -d --wait --wait-timeout 300
+      - name: Show service status and logs on failure
+        if: failure()
+        run: |
+          dc() { docker compose --project-name "$COMPOSE_PROJECT" --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" "$@"; }
+          dc ps -a
+          dc logs --no-color --tail 200 backend frontend nginx

@@ -1,0 +1,138 @@
+name: Build and deploy homolog
+
+on:
+  push:
+    branches: [homolog]
+    paths-ignore:
+      - "**.md"
+      - ".gitignore"
+      - ".vscode/**"
+  # Permite redeploy manual (Actions → Build and deploy homolog → Run workflow).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-homolog
+  cancel-in-progress: false
+
+env:
+  BACKEND_IMAGE: joaoprdo/controle-visitantes-backend
+  FRONTEND_IMAGE: joaoprdo/controle-visitantes-frontend
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm test
+        working-directory: backend
+      - run: npm run build
+        working-directory: backend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        env:
+          CI: "false"
+        working-directory: frontend
+
+  build-and-push:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:homolog
+            ${{ env.BACKEND_IMAGE }}:sha-${{ github.sha }}
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            REACT_APP_API_URL=/api
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:homolog
+            ${{ env.FRONTEND_IMAGE }}:sha-${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: [self-hosted, linux, homolog]
+    environment: homolog
+    steps:
+      # O deploy só copia arquivos de docker/; os submódulos já viraram imagens.
+      - uses: actions/checkout@v4
+      - name: Preflight (host configuration)
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+        run: |
+          fail=0
+          if [ -z "$DEPLOY_PATH" ]; then
+            echo "::error::DEPLOY_PATH não definida (Variable ou Secret do Environment 'homolog' ou do repositório)"; exit 1
+          fi
+          [ -f "$DEPLOY_PATH/.env" ] || { echo "::error::Falta $DEPLOY_PATH/.env"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.crt" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.crt"; fail=1; }
+          [ -f "$DEPLOY_PATH/ssl/server.key" ] || { echo "::error::Falta $DEPLOY_PATH/ssl/server.key"; fail=1; }
+          docker version --format 'docker {{.Server.Version}}' || { echo "::error::Usuário do runner sem acesso ao Docker"; fail=1; }
+          docker compose version || { echo "::error::docker compose (plugin v2) não instalado"; fail=1; }
+          exit $fail
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Install deployment files in the host directory
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+        run: |
+          test -n "$DEPLOY_PATH"
+          # branding/ (logo e fundo) é mantida no host, como o .env; nunca vem do Git.
+          mkdir -p "$DEPLOY_PATH/docker" "$DEPLOY_PATH/branding"
+          cp docker/compose.yaml docker/compose.nginx.yaml docker/nginx.conf "$DEPLOY_PATH/docker/"
+      - name: Pull and restart homolog services
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+        run: |
+          export IMAGE_TAG=homolog
+          docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" pull backend frontend
+          docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" up -d --wait --wait-timeout 300
+      - name: Show service status and logs on failure
+        if: failure()
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH }}
+        run: |
+          export IMAGE_TAG=homolog
+          dc() { docker compose --project-name controle-homolog --env-file "$DEPLOY_PATH/.env" \
+            -f "$DEPLOY_PATH/docker/compose.yaml" -f "$DEPLOY_PATH/docker/compose.nginx.yaml" "$@"; }
+          dc ps -a
+          dc logs --no-color --tail 200 backend frontend nginx

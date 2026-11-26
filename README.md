@@ -4,12 +4,85 @@ _Status do Projeto: Em desenvolvimento 🚧_
 
 Sistema de controle de acesso desenvolvido para modernizar a gestão de segurança em organizações militares. A solução substitui processos manuais baseados em papel por uma plataforma digital ágil e confiável, focada na operação em rede local (intranet) para garantir máxima segurança e disponibilidade.
 
-## Dicas de desenvolvimento
+## 🚀 Iniciando o Projeto
 
 Esse projeto usa o repositorio do github com submodulos, para clonar o projeto corretamente use o comando:
 
 ```code
 git clone --recurse-submodules https://github.com/joao-pedro-rdo/controle-visitantes-estacionamento.git
+```
+
+Copie `.env.example` para `.env` e ajuste os valores locais.
+
+### Senhas e segredos do `.env` (primeira inicialização)
+
+Na primeira inicialização de cada ambiente (dev, homolog, produção), troque todos os valores `change_me` por segredos fortes e diferentes entre si. Gere cada um com:
+
+```bash
+openssl rand -hex 32
+```
+
+Rode o comando uma vez para cada variável:
+
+| Variável | Observação |
+| --- | --- |
+| `POSTGRES_PASSWORD` | Use a mesma senha dentro de `DATABASE_URL`. A saída hex não tem caracteres que quebrem a URL. |
+| `JWT_SECRET` | Trocar invalida as sessões abertas (usuários precisam logar de novo). |
+| `JWT_REFRESH_SECRET` | Idem. |
+| `COOKIE_SECRET` | Idem. |
+| `IMAGE_ENCRYPTION_KEY` | **Defina uma vez e nunca mais troque**: as fotos de visitantes/permissionários já salvas só abrem com a mesma chave. Guarde uma cópia em local seguro. |
+
+Exemplo para gerar tudo de uma vez e colar no `.env`:
+
+```bash
+for v in POSTGRES_PASSWORD JWT_SECRET JWT_REFRESH_SECRET COOKIE_SECRET IMAGE_ENCRYPTION_KEY; do
+  echo "$v=$(openssl rand -hex 32)"
+done
+```
+
+Os segredos ficam apenas no `.env` de cada servidor; nunca faça commit deles. Se o banco já foi criado, mudar `POSTGRES_PASSWORD` no `.env` não altera a senha do PostgreSQL (ela só é aplicada quando o volume é criado).
+
+### Subindo o ambiente de desenvolvimento
+
+O modo padrão de desenvolvimento não sobe o Nginx; assim é possível desenvolver e testar frontend/API sem TLS:
+
+```bash
+docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml up --build
+```
+
+Frontend: `http://localhost:3000`; API: `http://localhost:5000`. Para testar também o proxy HTTPS do Nginx, gere certificados locais e inclua o override:
+
+**Linux/macOS (Bash):**
+```bash
+mkdir -p ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+ -keyout ssl/server.key \
+ -out ssl/server.crt \
+ -subj "/C=BR/ST=State/L=City/O=Organization/CN=localhost"
+```
+
+```bash
+docker compose --env-file .env -f docker/compose.yaml -f docker/compose.dev.yaml -f docker/compose.nginx.yaml up --build
+```
+
+Mais detalhes de branches, imagens, runners e configuração dos ambientes estão em [`docs/deploy.md`](docs/deploy.md).
+
+Se a rede local inspecionar TLS e o build Docker retornar `SELF_SIGNED_CERT_IN_CHAIN`, configure `NPM_CA_FILE` em `.env` com o caminho de um certificado CA PEM confiável e adicione `-f docker/compose.dev-ca.yaml` ao comando de build. Não desative a validação TLS do npm.
+
+**Windows (PowerShell):**
+
+> ⚠️ Pré-requisito: instale o [Chocolatey](https://dev.to/kevinkirsten/como-instalar-e-utilizar-o-chocolatey-guia-para-iniciantes-1i98) e depois o OpenSSL. Abra o PowerShell como **Administrador** e execute:
+> ```powershell
+> choco install openssl -y
+> ```
+> Feche e reabra o PowerShell (não precisa ser admin) para usar o `openssl`.
+
+```powershell
+New-Item -ItemType Directory -Force -Path ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 `
+ -keyout ssl/server.key `
+ -out ssl/server.crt `
+ -subj "/C=BR/ST=State/L=City/O=Organization/CN=localhost"
 ```
 
 ## O Problema que Resolvemos
