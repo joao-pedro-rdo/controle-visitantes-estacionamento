@@ -20,6 +20,6 @@ O workflow autentica no Docker Hub usando os repository secrets `DOCKERHUB_USERN
 
 ## Produção (ainda não configurado)
 
-O workflow está preparado, mas desabilitado em `.github/workflows/deploy-prod.yml.disabled`. Quando o servidor e o runner de produção estiverem configurados, defina os labels (planejados: `selfhosted-prod-gda` e `prod-gda`), crie o Environment `production`, revise `DEPLOY_PATH`, `.env`, TLS e a migração dos dados atuais; depois habilite o arquivo renomeando-o para `deploy-prod.yml`.
+O workflow `.github/workflows/deploy-prod.yml` seleciona o runner pelos labels `self-hosted`, `linux` e `prod` (label customizado `prod`). Crie o Environment `production` com `DEPLOY_PATH` e, de preferência, *Required reviewers*. O job de deploy só roda quando a variável `PROD_DEPLOY_ENABLED` for `true`; até lá o merge em `main` apenas publica as imagens. Siga [`docs/migracao-producao.md`](../docs/migracao-producao.md) antes de habilitar.
 
 Não habilite deploy de produção antes de identificar e preservar/restaurar o volume PostgreSQL e os uploads/imagens do sistema que já estão em uso.

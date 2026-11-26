@@ -10,7 +10,7 @@ O repositório central fixa cada versão dos submódulos pelo gitlink. Para publ
 
 ## Imagens Docker
 
-O workflow `deploy-homolog.yml` constrói os dois serviços a partir dos submódulos no estado fixado pela branch `homolog`. A configuração equivalente de produção está preparada, mas desabilitada em `deploy-prod.yml.disabled`.
+O workflow `deploy-homolog.yml` constrói os dois serviços a partir dos submódulos no estado fixado pela branch `homolog`. O workflow `deploy-prod.yml` faz o mesmo para `main` (tags `latest` e `sha-<commit>`). O job de deploy de produção só roda com a variável `PROD_DEPLOY_ENABLED = true`; sem ela o merge em `main` apenas valida e publica as imagens. A primeira migração da instalação antiga está em [`migracao-producao.md`](migracao-producao.md).
 
 - `joaoprdo/controle-visitantes-backend:homolog|latest`
 - `joaoprdo/controle-visitantes-frontend:homolog|latest`
@@ -34,7 +34,7 @@ Crie o GitHub Environment `homolog` com `DEPLOY_PATH` (como Variable ou Secret; 
 - `branding/` com a **Logo do Sistema** e a **Imagem de Fundo** daquele ambiente (opcional; ver abaixo);
 - espaço persistente para os volumes Docker de PostgreSQL e imagens de visitantes.
 
-O deploy de homologação usa o projeto Compose `controle-homolog`. Os diretórios `.env` e `ssl/` não são copiados do checkout. A workflow de produção está no arquivo `.github/workflows/deploy-prod.yml.disabled`, que o GitHub não executa; ela só deve ser habilitada quando o runner e as configurações de produção forem preparados.
+O deploy de homologação usa o projeto Compose `controle-homolog`. Os diretórios `.env` e `ssl/` não são copiados do checkout. Produção usa o projeto Compose `controle-prod`, o runner com labels `self-hosted`, `linux` e `prod` e o Environment `production` (com `DEPLOY_PATH`; recomenda-se exigir aprovação em *Required reviewers*). O deploy de produção faz `pg_dump` em `$DEPLOY_PATH/backups/` antes de atualizar (mantém os 15 mais recentes), usa a tag imutável `sha-<commit>` e confere se `IMAGE_ENCRYPTION_KEY` está no `.env`.
 
 **Migração do stack já existente:** antes do primeiro deploy em qualquer servidor, faça backup do banco atual e identifique explicitamente o volume/serviço PostgreSQL que contém os dados. O Compose novo cria volumes vinculados aos nomes `controle-homolog`/`controle-prod`; não aponte produção para um volume novo sem restaurar/conectar os dados existentes e validar a aplicação. Preserve também os volumes de uploads/imagens e configure permissões/caminhos antes de ativar o workflow.
 

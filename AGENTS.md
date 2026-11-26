@@ -32,7 +32,7 @@
 - In backend route files, route declaration order matters. `backend/src/routes/entries-routes.ts` explicitly keeps specific routes before generic `:id` routes.
 
 ## Verification Notes
-- CI and the homolog deploy workflow live under `.github/workflows/`; production deploy is intentionally disabled in `deploy-prod.yml.disabled`.
+- CI and the homolog deploy workflow live under `.github/workflows/`; production is `deploy-prod.yml`, whose deploy job only runs when the repo/environment variable `PROD_DEPLOY_ENABLED` is `true` (otherwise `main` only publishes images). First cutover from the legacy `controle-gda` install: `docs/migracao-producao.md`.
 - Backend tests use Vitest (`npm test`) and type/build checks use `npm run build`.
 - Frontend test runner is the default CRA `react-scripts test`; use focused checks when possible instead of assuming a broader test harness exists.
 

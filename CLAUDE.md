@@ -11,7 +11,7 @@ The imported `AGENTS.md` covers repo shape, run paths, runtime wiring, and file/
 - Access-control system (visitors, permissionários, military vehicles) for a military organization (OM), designed to run offline on an intranet. Code, docs, and UI are in Portuguese.
 - Use the domain terms from `UBIQUITOUS_LANGUAGE.md` (e.g. **Visitante**, **Permissionario**, **Pessoa Nao Autorizada**, profiles **S2** and **Guarda**) and avoid the aliases it lists.
 - `Task.md` is the phase checklist for the backend migration (based on `docs/backend-roadmap.md`). Update it when completing roadmap items.
-- `CONTEXT.md` and `docs/deploy.md` describe the CI/CD model: `develop` → CI only; `develop`→`homolog` merge publishes `homolog` images and deploys to a self-hosted runner; `homolog`→`main` targets production (workflow currently disabled). Images are built from the submodule gitlinks pinned in this root repo, so a submodule change only ships after the root repo bumps the gitlink.
+- `CONTEXT.md` and `docs/deploy.md` describe the CI/CD model: `develop` → CI only; `develop`→`homolog` merge publishes `homolog` images and deploys to a self-hosted runner; `homolog`→`main` publishes `latest`/`sha-*` images and deploys to production only when `PROD_DEPLOY_ENABLED=true`. Images are built from the submodule gitlinks pinned in this root repo, so a submodule change only ships after the root repo bumps the gitlink.
 - `back/` and root `prisma/schema.sql` are legacy leftovers; the real schema is `backend/prisma/schema.prisma`.
 
 ## Commands (beyond AGENTS.md)
